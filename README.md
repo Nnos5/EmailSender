@@ -33,7 +33,8 @@ Un projet Python moderne pour envoyer des emails avec pièces jointes via un **f
 
 ```bash
 git clone https://github.com/Nnos5/EmailSender.git
-cd email-sender
+cd EmailSender
+
 ```
 
 2. **Créer un environnement virtuel :**
