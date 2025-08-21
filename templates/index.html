@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Envoi d'Email</title>
+  <style>
+    /* 🎨 Style global */
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 10px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 500px;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2a5298;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border 0.3s ease;
+    }
+
+    input:focus, textarea:focus {
+      border: 1px solid #2a5298;
+      outline: none;
+      box-shadow: 0 0 5px rgba(42, 82, 152, 0.4);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .file-input {
+      margin-top: 8px;
+    }
+
+    button {
+      margin-top: 18px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      background: #2a5298;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background: #1e3c72;
+      transform: translateY(-2px);
+    }
+
+    .success {
+      margin-top: 15px;
+      padding: 10px;
+      background: #e0f8e0;
+      border: 1px solid #28a745;
+      color: #155724;
+      border-radius: 8px;
+      display: none;
+      text-align: center;
+    }
+
+    .error {
+      margin-top: 15px;
+      padding: 10px;
+      background: #f8d7da;
+      border: 1px solid #dc3545;
+      color: #721c24;
+      border-radius: 8px;
+      display: none;
+      text-align: center;
+    }
+
+    /* Loader */
+    #loader {
+      display: none;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 📱 Responsive */
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+        border-radius: 10px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+      button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📧 Envoyer un Email</h2>
+    <form id="emailForm" enctype="multipart/form-data" autocomplete="off">
+      <label for="to">Destinataire :</label>
+      <input type="email" id="to" name="to" placeholder="exemple@mail.com" required>
+
+      <label for="subject">Sujet :</label>
+      <input type="text" id="subject" name="subject" placeholder="Objet de votre message" required>
+
+      <label for="message">Message :</label>
+      <textarea id="message" name="message" placeholder="Écrivez votre message ici..." required></textarea>
+
+      <label for="attachment">📎 Pièce jointe :</label>
+      <input type="file" id="attachment" name="attachment" class="file-input">
+
+      <button type="submit">📤 Envoyer</button>
+    </form>
+
+    <!-- Loader -->
+    <div id="loader">
+      <svg width="40" height="40" viewBox="0 0 50 50">
+        <circle cx="25" cy="25" r="20" stroke="#2a5298" stroke-width="5" fill="none" stroke-linecap="round">
+          <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+    </div>
+
+    <div id="success" class="success">✅ Message envoyé avec succès !</div>
+    <div id="error" class="error">❌ Erreur lors de l'envoi du message.</div>
+  </div>
+
+  <script>
+    document.getElementById("emailForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(this);
+      const loader = document.getElementById("loader");
+      loader.style.display = "block"; // Affiche le loader
+
+      fetch("http://localhost:5000/send", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.json())
+      .then(result => {
+        loader.style.display = "none"; // Masque le loader
+        if (result.status === "success" || result.success) {
+            const successDiv = document.getElementById("success");
+            successDiv.style.display = "block";
+            document.getElementById("error").style.display = "none";
+            this.reset(); // Réinitialise le formulaire après succès
+
+
+          // 🔥 Faire disparaître le message après 10 secondes
+         setTimeout(() => {
+         successDiv.style.display = "none";
+      }, 10000); // 10000ms = 10s
+
+        } else {
+          throw new Error(result.message || "Échec");
+        }
+      })
+      .catch(error => {
+        loader.style.display = "none"; // Masque le loader
+        document.getElementById("success").style.display = "none";
+        document.getElementById("error").style.display = "block";
+      });
+    });
+  </script>
+</body>
+</html>
